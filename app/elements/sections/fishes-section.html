@@ -1,0 +1,26 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../styles/shared-styles.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+
+<dom-module id="fishes-section">
+  <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <paper-material elevation="1">
+      <h2 class="page-title">Fishes</h2>
+
+      <span>[[fishesCatalog.fish]]</span>
+    </paper-material>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'fishes-section'
+    });
+  </script>
+</dom-module>
