@@ -58,6 +58,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Polymer.Base.transform('scale(' + scaleMiddle + ') translateZ(0)', appName);
   });
 
+  app._computeAppPanelHidden = function (admin, preview) {
+    if (admin && !preview) {
+      return true;
+    }
+    return false;
+  };
+
+  app._computeAdminPanelHidden = function (admin, preview) {
+    if (admin && !preview) {
+      return false;
+    }
+    return true;
+  };
+
   // Close drawer after menu item is selected if drawerPanel is narrow
   app.onDataRouteClick = function() {
     var drawerPanel = document.querySelector('#paperDrawerPanel');
@@ -70,5 +84,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   app.scrollPageToTop = function() {
     document.getElementById('mainContainer').scrollTop = 0;
   };
+
+  // app._computeLoginDisabled = function (route) {
+  //   switch (route) {
+  //     case 'home':
+  //     case 'contact':
+  //     case 'license':
+  //       return true;
+  //       // break;
+  //     default:
+  //     return false;
+  //   }
+  // };
 
 })(document);
