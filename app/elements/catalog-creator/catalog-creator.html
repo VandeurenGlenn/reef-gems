@@ -1,0 +1,217 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="..\..\bower_components/polymer/polymer.html">
+<link rel="import" href="..\..\bower_components/file-input/file-input.html">
+<link rel="import" href="..\..\bower_components/paper-button/paper-button.html">
+<link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards.html">
+<link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards-dialog.html">
+<link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards-bar.html">
+<link rel="import" href="../../bower_components/juicy-jsoneditor/src/juicy-jsoneditor.html">
+<link rel="stylesheet" type="text/css" href="../../styles/jsoneditor.css">
+
+<dom-module id="catalog-creator">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      .horizontal {
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+      }
+      .bar {
+        padding-top: 0.9em;
+      }
+      .center {
+        @apply(--layout-center-center);
+      }
+      selectable-card {
+        padding: 0.9em 1em;
+      }
+    </style>
+    <selectable-cards-dialog id="categorieDialog" selected="{{selectedCatCard}}" with-backdrop>
+      <selectable-card heading="Category Name" elevation="0">
+        <div class="card-content">
+          <paper-input label="name" value="{{catName}}"></paper-input>
+        </div>
+      </selectable-card>
+
+      <selectable-card heading="Category Options" elevation="0" disabled>
+        <div class="card-content horizontal center">
+          <file-input on-file="newFile"><paper-button raised>Upload File</paper-button></file-input>
+        </div>
+      </selectable-card>
+
+      <selectable-cards-bar class="horizontal">
+        <span class="flex"></span>
+        <paper-fab icon="check" mini disabled$="[[!catName]]" hidden$="[[_computeAddCategoryNameHidden(selectedCatCard)]]" on-tap="nextCatCard"></paper-fab>
+        <paper-fab icon="check" mini disabled$="[[!catName]]" hidden$="[[_computeAddCategoryHidden(selectedCatCard)]]" on-tap="addNewCategorie"></paper-fab>
+      </selectable-cards-bar>
+    </selectable-cards-dialog>
+
+    <div hidden$="[[file]]">
+      <span class="horizontal">
+        <h2>Categories</h2>
+        <paper-icon-button icon="add" title="add categorie" on-tap="addCategorie"></paper-icon-button>
+      </span>
+      <template is="dom-repeat" items="[[__catalogItems__]]">
+        <p>[[item.__key__]]</p>
+      </template>
+    </div>
+
+    <div hidden$=[[!file]]>
+      <juicy-jsoneditor json="[[file]]" history hidden$="[[!file]]"></juicy-jsoneditor>
+      <paper-fab icon="save" on-tap="addNewCategorie" hidden$="[[_computeAddCategorySaveHidden(autoSave, file)]]"></paper-fab>
+
+      <paper-fab icon="check" on-tap="closeJuicyJson" hidden$="[[!file]]"></paper-fab>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'catalog-creator',
+
+      properties: {
+        appName: String,
+        /** The location to write values to */
+        loc: String,
+        file: {
+          type: Object,
+          value: null
+        },
+
+        catalogItems: {
+          type: Object,
+          readOnly: true
+        },
+
+        catalogItems: {
+          type: Object,
+          readOnly: true
+        },
+
+        selectedCatCard: {
+          type: String,
+          value: 'Category Name'
+        },
+
+        __catalogItems__: {
+          type: Array,
+          value: [],
+          readOnly: true
+        },
+
+        autoSave: {
+          type: Boolean,
+          value: true
+        }
+      },
+
+      ready: function () {
+        this.catalog = this._ref('catalog');
+        this.catalog.on('value', function (e) {
+          this._setCatalogItems(e.val());
+          this._items = [];
+          for (var val in this.catalogItems) {
+            if (this.catalogItems.hasOwnProperty(val)) {
+              this.catalogItems[val].__key__ = val;
+              this.push('_items', this.catalogItems[val]);
+            }
+          }
+          this._set__catalogItems__(this._items);
+        }.bind(this));
+      },
+
+      _ref: function (loc) {
+        return new Firebase('https://' + this.appName + '.firebaseio.com/' + loc);
+      },
+
+      addCategorie: function () {
+        this.$.categorieDialog.open();
+      },
+
+      addNewCategorie: function (file) {
+        this._setCat(this.catalogItems, this.catName, file);
+      },
+
+      _setCat: function (data, catName, file) {
+        if (!data) {
+          data = {};
+        }
+        if (file) {
+          data[catName] = file;
+        } else {
+          data[catName] = 'empty';
+        }
+
+        this.catalog.set(data);
+      },
+
+      newFile: function (e) {
+        var file = e.detail;
+        if (file.name.includes('.json')) {
+          // use FileReader for loading JSON files
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            this.file = JSON.parse(e.target.result);
+            this.addNewCategorie(this.file);
+          }.bind(this);
+          reader.readAsText(file);
+        }
+        this.querySelector('juicy-jsoneditor').addEventListener('change', this._jsonChanged.bind(this));
+      },
+
+      nextCatCard: function () {
+        this.$.categorieDialog.querySelector('selectable-cards').selectNext();
+      },
+
+      _computeAddCategorySaveHidden: function (autoSave, file) {
+        if (autoSave || !file) {
+          return true;
+        }
+        return false;
+      },
+
+      _computeAddCategoryNameHidden: function (selected) {
+        if (selected === 'Category Name') {
+          return false;
+        }
+        return true;
+      },
+
+      _computeAddCategoryHidden: function (selected) {
+        if (selected === 'Category Options') {
+          return false;
+        }
+        return true;
+      },
+
+      _jsonChanged: function () {
+        var file = JSON.parse(event.target.getText());
+        if (this.autoSave) {
+          this.addNewCategorie(file);
+        }
+      },
+
+      closeJuicyJson: function () {
+        this.querySelector('juicy-jsoneditor').removeEventListener('change');
+        this.setDefaults();
+      },
+
+      setDefaults: function () {
+        this.file = null;
+        this.selectedCatCard = 'Category Name';
+        this.catName = null;
+      }
+
+
+    });
+  </script>
+</dom-module>
