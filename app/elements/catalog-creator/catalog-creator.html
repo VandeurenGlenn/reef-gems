@@ -21,20 +21,47 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :host {
+        /*position: absolute;
+        width: 100%;
+        height: 100%;*/
         display: block;
+        border: 1px solid rgba(0, 0, 0, 0.22);
       }
       .horizontal {
         @apply(--layout-horizontal);
+      }
+      .vertical {
+        @apply(--layout-vertical);
+      }
+      .center {
         @apply(--layout-center);
       }
       .bar {
         padding-top: 0.9em;
       }
-      .center {
+      .middle {
         @apply(--layout-center-center);
       }
       selectable-card {
         padding: 0.9em 1em;
+      }
+      .cat-list {
+        border-right: 1px solid rgba(0, 0, 0, 0.22);
+      }
+      .cat-list, juicy-jsoneditor {
+        min-width: 280px;
+      }
+      .cat-list, .cat-list > p {
+        padding: 8px;
+      }
+      .cat-list > .iron-selected {
+        background: #eee;
+      }
+      .selected-cat-view, .selected-cat-view > juicy-jsoneditor {
+        width: 100%;
+      }
+      paper-toolbar {
+        width: 100%;
       }
     </style>
     <selectable-cards-dialog id="categorieDialog" selected="{{selectedCatCard}}" with-backdrop>
@@ -45,7 +72,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </selectable-card>
 
       <selectable-card heading="Category Options" elevation="0" disabled>
-        <div class="card-content horizontal center">
+        <div class="card-content horizontal middle">
           <file-input on-file="newFile"><paper-button raised>Upload File</paper-button></file-input>
         </div>
       </selectable-card>
@@ -58,13 +85,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </selectable-cards-dialog>
 
     <div hidden$="[[file]]">
-      <span class="horizontal">
-        <h2>Categories</h2>
-        <paper-icon-button icon="add" title="add categorie" on-tap="addCategorie"></paper-icon-button>
-      </span>
-      <template is="dom-repeat" items="[[__catalogItems__]]">
-        <p>[[item.__key__]]</p>
-      </template>
+      <div class="horizontal">
+        <div class="vertical">
+          <paper-toolbar>
+            <h2>Categories</h2>
+            <span class="flex"></span>
+            <paper-icon-button icon="add" title="add categorie" on-tap="addCategorie"></paper-icon-button>
+          </paper-toolbar>
+          <iron-selector selected="{{selectedCat}}" on-iron-select="onCategorySelect" class="cat-list">
+            <template is="dom-repeat" items="[[__catalogItems__]]">
+              <p name$="[[item.__key__]]">[[item.__key__]]</p>
+            </template>
+          </iron-selector>
+        </div>
+
+
+        <div class="selected-cat-view horizontal">
+          <paper-toolbar hidden$="[[selectedCat]]">
+
+            <p>select an category from the left panel</p>
+          </paper-toolbar>
+        </div>
+      </div>
     </div>
 
     <div hidden$=[[!file]]>
@@ -209,6 +251,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.file = null;
         this.selectedCatCard = 'Category Name';
         this.catName = null;
+      },
+
+      onCategorySelect: function (e) {
+        var path = 'catalog/';
+        var name = e.detail.item.getAttribute('name');
+        path =  path + name + '/';
+        var cat = this._ref(path);
+        cat.on('value', function (e) {
+          this.openCatView(e.val());
+        }.bind(this));
+
+
+      },
+
+      openCatView: function (item) {
+        // this.querySelector('juicy-jsoneditor').addEventListener('change', this._jsonChanged.bind(this));
+        if (!this.__juicyJson__) {
+          this.__juicyJson__ = document.createElement('juicy-jsoneditor');
+          Polymer.dom(document.querySelector('.selected-cat-view')).appendChild(this.__juicyJson__);
+        }
+        this.__juicyJson__.classList.add('cat-view');
+        this.__juicyJson__.json = item;
       }
 
 
