@@ -70,6 +70,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <!-- Drawer Toolbar -->
         <paper-toolbar id="drawerToolbar">
           <span class="paper-font-title">Menu</span>
+          <span class="flex"></span>
+          <paper-icon-button icon="autorenew" title="switch to admin view" on-tap="adminView" hidden$="[[!admin]]"></paper-icon-button>
         </paper-toolbar>
 
         <!-- Drawer Content -->
@@ -161,7 +163,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </paper-drawer-panel>
 
     <reefgems-admin-ui admin-route="[[adminRoute]]" preview="{{preview}}" hidden$="[[_computeAdminPanelHidden(admin, preview)]]"></reefgems-admin-ui>
-    <reefgems-admin-login admin="{{admin}}" route="[[route]]"></reefgems-admin-login>
+    <reefgems-admin-login admin="{{admin}}" route="[[route]]" on-login="onAdminLogin"></reefgems-admin-login>
 
     <reef-gems-data fishes-catalog="{{fishesCatalog}}"></reef-gems-data>
     <!-- Service Worker -->

@@ -27,11 +27,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       :host[disabled] {
         display: none;
       }
+      paper-dialog {
+        background: #FFFFFF;
+      }
+      paper-input {
+
+      }
     </style>
     <firebase-auth location="https://reefgems.firebaseio.com" user="{{admin}}" provider="password"></firebase-auth>
-    <paper-dialog opened$="[[_computeAdminLoginOpened(admin, route)]]">
+    <paper-dialog opened$="[[_computeAdminLoginOpened(admin, route)]]" with-backdrop>
       <h2>Admin Login</h2>
-      <paper-input label="email" type="email"  value="{{email}}" auto-validate></paper-input>
+      <paper-input label="email" type="email"  value="{{email}}" auto-validate autocomplete></paper-input>
       <paper-input label="password" type="password" value="{{password}}"></paper-input>
       <span class="horizontal">
         <span class="flex"></span>

@@ -72,6 +72,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     return true;
   };
 
+  app.onAdminLogin = function () {
+    app.adminRoute = 'dashboard';
+    document.location.hash = '#!/admin/dashboard';
+  };
+
+  app.adminView = function () {
+    document.querySelector('reefgems-admin-ui')._setPreview(false);
+  };
+
   // Close drawer after menu item is selected if drawerPanel is narrow
   app.onDataRouteClick = function() {
     var drawerPanel = document.querySelector('#paperDrawerPanel');
