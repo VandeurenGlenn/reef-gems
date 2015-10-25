@@ -19,6 +19,9 @@
     "Polymer": true,
     "Platform": true,
     "page": true,
-    "app": true
+    "app": true,
+    "FirebaseBehaviors": true,
+    "AppBehaviors": true,
+    "AdminBehaviors": true
   }
 }
