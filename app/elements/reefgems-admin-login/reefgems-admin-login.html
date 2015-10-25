@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="..\..\bower_components/polymer/polymer.html">
+<link rel="import" href="..\..\behaviors/admin-behaviors/admin-behaviors.html">
 <link rel="import" href="..\..\bower_components/firebase-element/firebase-auth.html">
 <link rel="import" href="..\..\bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="..\..\bower_components/paper-input/paper-input.html">
@@ -30,9 +31,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       paper-dialog {
         background: #FFFFFF;
       }
-      paper-input {
-
-      }
     </style>
     <firebase-auth location="https://reefgems.firebaseio.com" user="{{admin}}" provider="password"></firebase-auth>
     <paper-dialog opened$="[[_computeAdminLoginOpened(admin, route)]]" with-backdrop>
@@ -52,19 +50,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     Polymer({
       is: 'reefgems-admin-login',
+      behaviors: [AdminBehaviors],
 
       properties: {
-        admin: {
-          type: Object,
-          notify: true
-        },
         route: {
           type: String
         }
       },
 
       _computeAdminLoginOpened: function (admin, route) {
-        if (route !== 'admin' || admin) {
+        if (route !== 'admin' || admin !== null) {
           return false;
         } if (route === 'admin' && admin === null) {
           return true;
