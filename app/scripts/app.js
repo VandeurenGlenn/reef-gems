@@ -73,8 +73,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
 
   app.onAdminLogin = function () {
-    app.adminRoute = 'dashboard';
-    document.location.hash = '#!/admin/dashboard';
+    if (app.route === 'admin') {
+      app.adminRoute = 'dashboard';
+      document.location.hash = '#!/admin/dashboard';
+    }
   };
 
   app.adminView = function () {
@@ -91,7 +93,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   // Scroll page to top and expand header
   app.scrollPageToTop = function() {
-    document.getElementById('mainContainer').scrollTop = 0;
+    document.querySelector('#mainContainer').scrollTop = 0;
   };
 
   // app._computeLoginDisabled = function (route) {
