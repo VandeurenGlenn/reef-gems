@@ -1,0 +1,19 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="../../bower_components/firebase/firebase.js"></script>
+
+<script>
+  FirebaseBehaviors = {
+    ready: function () {
+      this._ref = new Firebase('https://reefgems.firebaseio.com/');
+    },
+
+    newFirebase: function (app, param) {
+      var params = param?param:'';
+      return new Firebase('https://reefgems.firebaseio.com/' + params);
+    },
+
+    newFirebaseChild: function (child) {
+      return this._ref.child(child);
+    }
+  }
+</script>
