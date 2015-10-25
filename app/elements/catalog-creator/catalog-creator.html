@@ -15,16 +15,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards-dialog.html">
 <link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards-bar.html">
 <link rel="import" href="../../bower_components/juicy-jsoneditor/src/juicy-jsoneditor.html">
+<link rel="import" href="..\..\behaviors/firebase/firebase-behaviors.html">
 <link rel="stylesheet" type="text/css" href="../../styles/jsoneditor.css">
 
 <dom-module id="catalog-creator">
   <template>
     <style>
       :host {
-        /*position: absolute;
+        position: absolute;
         width: 100%;
-        height: 100%;*/
-        display: block;
+        top: 192px;
+        bottom: 0;
+        display: flex;
         border: 1px solid rgba(0, 0, 0, 0.22);
       }
       .horizontal {
@@ -45,9 +47,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       selectable-card {
         padding: 0.9em 1em;
       }
-      .cat-list {
-        border-right: 1px solid rgba(0, 0, 0, 0.22);
-      }
       .cat-list, juicy-jsoneditor {
         min-width: 280px;
       }
@@ -57,8 +56,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .cat-list > .iron-selected {
         background: #eee;
       }
-      .selected-cat-view, .selected-cat-view > juicy-jsoneditor {
+      .cat-panel, .cat-panel-content, .selected-cat-view, .selected-cat-view > juicy-jsoneditor {
         width: 100%;
+        height: 100%;
+      }
+      .selected-cat-view {
+        border-left: 1px solid rgba(0, 0, 0, 0.22);
       }
       paper-toolbar {
         width: 100%;
@@ -84,8 +87,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </selectable-cards-bar>
     </selectable-cards-dialog>
 
-    <div hidden$="[[file]]">
-      <div class="horizontal">
+    <div class="cat-panel" hidden$="[[file]]">
+      <div class="cat-panel-content horizontal">
         <div class="vertical">
           <paper-toolbar>
             <h2>Categories</h2>
@@ -115,10 +118,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       <paper-fab icon="check" on-tap="closeJuicyJson" hidden$="[[!file]]"></paper-fab>
     </div>
+
+    <firebase-document url="[[computeCategoryUrl(appName, selectedCat)]]" data="{{catData}}"></firebase-document>
   </template>
   <script>
     Polymer({
       is: 'catalog-creator',
+      behaviors: [FirebaseBehaviors],
 
       properties: {
         appName: String,
@@ -127,11 +133,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         file: {
           type: Object,
           value: null
-        },
-
-        catalogItems: {
-          type: Object,
-          readOnly: true
         },
 
         catalogItems: {
@@ -153,11 +154,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         autoSave: {
           type: Boolean,
           value: true
+        },
+
+        fullScreenEdit: {
+          type: Boolean,
+          value: true
         }
       },
 
+      listeners: {
+        tap: '_tapHandler'
+      },
+
       ready: function () {
-        this.catalog = this._ref('catalog');
+        this.catalog = this.newFirebaseChild('catalog');
         this.catalog.on('value', function (e) {
           this._setCatalogItems(e.val());
           this._items = [];
@@ -171,8 +181,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }.bind(this));
       },
 
-      _ref: function (loc) {
-        return new Firebase('https://' + this.appName + '.firebaseio.com/' + loc);
+      computeCategoryUrl: function (app, cat) {
+        return 'https://' + app + '.firebaseio.com/catalog/' + cat;
+      },
+
+      _tapHandler: function (e) {
+        console.log(e);
       },
 
       addCategorie: function () {
@@ -238,7 +252,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _jsonChanged: function () {
         var file = JSON.parse(event.target.getText());
         if (this.autoSave) {
-          this.addNewCategorie(file);
+          // Check if creating a new category
+          if (this.catName) {
+            this.addNewCategorie(file);
+          }
         }
       },
 
@@ -257,8 +274,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var path = 'catalog/';
         var name = e.detail.item.getAttribute('name');
         path =  path + name + '/';
-        var cat = this._ref(path);
-        cat.on('value', function (e) {
+        this._openedCat = this.newFirebaseChild(path);
+        this._openedCat.on('value', function (e) {
           this.openCatView(e.val());
         }.bind(this));
 
@@ -271,9 +288,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.__juicyJson__ = document.createElement('juicy-jsoneditor');
           Polymer.dom(document.querySelector('.selected-cat-view')).appendChild(this.__juicyJson__);
         }
+        Polymer.dom(document.querySelector('.selected-cat-view')).querySelector('juicy-jsoneditor').addEventListener('change', this._saveChangedJSON.bind(this));
         this.__juicyJson__.classList.add('cat-view');
         this.__juicyJson__.json = item;
-      }
+      },
+
+      _saveChangedJSON: function () {
+        var type = event.detail.patches[0].op;
+        var _patchPath = event.detail.patches[0].path;
+        if (type === 'replace') {
+          this._openedCat.child(_patchPath).set(event.detail.patches[0].value);
+        } else if (type === 'remove') {
+          this._openedCat.child(_patchPath).remove();
+        }
+        if (this.fullScreenEdit) {
+        }
+      },
 
 
     });
