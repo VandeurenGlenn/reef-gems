@@ -22,6 +22,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       next();
     }
 
+    function redirectAdmin(ctx, next) {
+      app.route = 'admin';
+      if (!app.admin) {
+        app.adminRoute = 'login';
+        return;
+      }
+      next();
+    }
+
     // Routes
     page('/', scrollToTop, function() {
       app.route = 'home';
@@ -38,6 +47,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     page('/contact', scrollToTop, function() {
       app.route = 'contact';
+    });
+
+    page('/admin', scrollToTop, redirectAdmin);
+
+    page('/admin-login', redirectAdmin);
+
+    page('/admin/dashboard', scrollToTop, redirectAdmin, function () {
+      app.adminRoute = 'dashboard';
+    });
+
+    page('/admin/catalog-creator', scrollToTop, redirectAdmin, function () {
+      app.adminRoute = 'catalog-creator';
     });
 
     // add #! before urls

@@ -58,6 +58,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Polymer.Base.transform('scale(' + scaleMiddle + ') translateZ(0)', appName);
   });
 
+  app._computeAppPanelHidden = function (admin, preview) {
+    if (admin && !preview) {
+      return true;
+    }
+    return false;
+  };
+
+  app._computeAdminPanelHidden = function (admin, preview) {
+    if (admin && !preview) {
+      return false;
+    }
+    return true;
+  };
+
+  app.onAdminLogin = function () {
+    if (app.route === 'admin') {
+      app.adminRoute = 'dashboard';
+      document.location.hash = '#!/admin/dashboard';
+    }
+  };
+
+  app.adminView = function () {
+    document.querySelector('reefgems-admin-ui')._setPreview(false);
+  };
+
   // Close drawer after menu item is selected if drawerPanel is narrow
   app.onDataRouteClick = function() {
     var drawerPanel = document.querySelector('#paperDrawerPanel');
@@ -68,7 +93,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   // Scroll page to top and expand header
   app.scrollPageToTop = function() {
-    document.getElementById('mainContainer').scrollTop = 0;
+    document.querySelector('#mainContainer').scrollTop = 0;
   };
+
+  // app._computeLoginDisabled = function (route) {
+  //   switch (route) {
+  //     case 'home':
+  //     case 'contact':
+  //     case 'license':
+  //       return true;
+  //       // break;
+  //     default:
+  //     return false;
+  //   }
+  // };
 
 })(document);

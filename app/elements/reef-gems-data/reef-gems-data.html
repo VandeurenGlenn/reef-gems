@@ -9,11 +9,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="..\..\bower_components/polymer/polymer.html">
-<script src="..\..\bower_components/firebase/firebase.js"></script>
+<link rel="import" href="..\..\behaviors/firebase/firebase-behaviors.html">
 
 <script>
   Polymer({
     is: 'reef-gems-data',
+    behaviors: [FirebaseBehaviors],
 
     properties: {
       fishesCatalog: {
@@ -38,13 +39,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     _getData: function (child, prop) {
       this.prop = prop;
-      var data = new Firebase('https://reefgems.firebaseio.com/' + child);
+      var data = this.newFirebaseChild(child);
 
       data.on('value', this._dataBoundHandler.bind(this));
     },
 
     _dataBoundHandler: function (e) {
-      this.fire(this.prop.replace(/([A-Z])/g, "-$1").toLowerCase(), e.val());
+      this.fire(this.prop.replace(/([A-Z])/g, '-$1').toLowerCase(), e.val());
       // for (var item in items) {
       //   if (items.hasOwnProperty(item)) {
       //     return items[item];

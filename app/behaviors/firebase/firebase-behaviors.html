@@ -1,0 +1,45 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="../../bower_components/firebase/firebase.js"></script>
+
+<script>
+  FirebaseBehaviors = {
+    ready: function () {
+      this._ref = new Firebase('https://reefgems.firebaseio.com/');
+    },
+
+    newFirebase: function (app, param) {
+      var params = param?param:'';
+      return new Firebase('https://reefgems.firebaseio.com/' + params);
+    },
+
+    newFirebaseChild: function (child) {
+      return this._ref.child(child);
+    },
+
+    /** Binds data to the choosen property & fires an 'firebase-propname-added' event,
+    *
+    * example: this._setData(this.imported, 'catalog-creator', 'imported');
+    * fires the 'firebase-imported-added' event.
+    */
+    _setData: function (prop, loc, child) {
+      var eName = child?child:loc;
+      var _loc = child?loc + '/' + child:loc;
+      prop = this.newFirebaseChild(_loc);
+      prop.on('value', function (e) {
+        this.fire('firebase-' + eName + '-added', e.val());
+      }.bind(this));
+    },
+
+    /** Converts a Object to an Array */
+    _pushToArray: function (data) {
+      this._items = [];
+      for (var val in data) {
+        if (data.hasOwnProperty(val)) {
+          data[val].__key__ = val;
+          this.push('_items', data[val]);
+        }
+      }
+      return this._items;
+    }
+  }
+</script>

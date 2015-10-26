@@ -30,7 +30,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <!-- Add to homescreen for Chrome on Android -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="PSK">
+  <meta name="application-name" content="Reef Gems">
   <link rel="icon" sizes="192x192" href="images/touch/chrome-touch-icon-192x192.png">
 
   <!-- Add to homescreen for Safari on iOS -->
@@ -63,13 +63,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <span id="browser-sync-binding"></span>
   <template is="dom-bind" id="app">
 
-    <paper-drawer-panel id="paperDrawerPanel">
+    <paper-drawer-panel id="paperDrawerPanel" hidden$="[[_computeAppPanelHidden(admin, preview)]]">
       <!-- Drawer Scroll Header Panel -->
       <paper-scroll-header-panel drawer fixed>
 
         <!-- Drawer Toolbar -->
         <paper-toolbar id="drawerToolbar">
           <span class="paper-font-title">Menu</span>
+          <span class="flex"></span>
+          <paper-icon-button icon="autorenew" title="switch to admin view" on-tap="adminView" hidden$="[[!admin]]"></paper-icon-button>
         </paper-toolbar>
 
         <!-- Drawer Content -->
@@ -160,8 +162,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </paper-scroll-header-panel>
     </paper-drawer-panel>
 
-    <reef-gems-data fishes-catalog="{{fishesCatalog}}"></reef-gems-data>
+    <reefgems-admin-ui admin-route="[[adminRoute]]" preview="{{preview}}" hidden$="[[_computeAdminPanelHidden(admin, preview)]]"></reefgems-admin-ui>
+    <reefgems-admin-login admin="{{admin}}" route="[[route]]" on-login="onAdminLogin"></reefgems-admin-login>
 
+    <reef-gems-data fishes-catalog="{{fishesCatalog}}"></reef-gems-data>
     <!-- Service Worker -->
     <paper-toast id="caching-complete" duration="6000" text="Caching complete! This app will work offline."></paper-toast>
 

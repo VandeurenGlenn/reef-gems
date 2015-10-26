@@ -1,0 +1,114 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../behaviors/app-behaviors/app-behaviors.html">
+<link rel="import" href="../../behaviors/admin-behaviors/admin-behaviors.html">
+<link rel="import" href="..\..\bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../../styles/app-theme.html">
+<link rel="import" href="../../styles/shared-styles.html">
+
+<dom-module id="reefgems-admin-ui">
+  <template>
+    <!-- For shared styles, shared-styles.html import in elements.html -->
+    <style is="custom-style" include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <paper-drawer-panel id="paperDrawerPanel">
+      <!-- Drawer Scroll Header Panel -->
+      <paper-header-panel drawer mode="waterfall">
+
+        <!-- Drawer Toolbar -->
+        <paper-toolbar id="drawerToolbar">
+          <span class="paper-font-title">Menu</span>
+          <span class="flex"></span>
+          <paper-icon-button icon="autorenew" title="switch to app view" on-tap="appView"></paper-icon-button>
+        </paper-toolbar>
+
+        <!-- Drawer Content -->
+        <paper-menu class="list" attr-for-selected="admin-route" selected="[[adminRoute]]">
+          <a admin-route="dashboard" href="/admin/dashboard" on-click="onDataRouteClick">
+            <iron-icon icon="dashboard"></iron-icon>
+            <span>Dashboard</span>
+          </a>
+
+          <a admin-route="catalog-creator" href="/admin/catalog-creator" on-click="onDataRouteClick">
+            <iron-icon icon="catalog"></iron-icon>
+            <span>Catalog Creater</span>
+          </a>
+        </paper-menu>
+      </paper-header-panel>
+
+      <!-- Main Area -->
+      <paper-scroll-header-panel main condenses keep-condensed-header>
+
+        <!-- Main Toolbar -->
+        <paper-toolbar id="mainToolbar" class="tall">
+          <paper-icon-button id="paperToggle" icon="menu" paper-drawer-toggle></paper-icon-button>
+          <span class="flex"></span>
+
+          <!-- Toolbar icons -->
+          <paper-icon-button icon="refresh"></paper-icon-button>
+          <paper-icon-button icon="search"></paper-icon-button>
+
+          <!-- Application name -->
+          <div class="middle middle-container center horizontal layout">
+            <div class="app-name">Reef Gems</div>
+          </div>
+
+          <!-- Application sub title -->
+          <div class="bottom bottom-container center horizontal layout">
+            <div class="bottom-title paper-font-subhead">Marine Coral & Fish Store</div>
+          </div>
+
+        </paper-toolbar>
+
+        <!-- Main Content -->
+        <div class="content">
+          <iron-pages attr-for-selected="admin-route" selected="{{adminRoute}}">
+
+            <section admin-route="dashboard">
+              <paper-material elevation="1">
+                dashboard
+              </paper-material>
+            </section>
+
+
+            <catalog-creator admin-route="catalog-creator" app-name="reefgems"></catalog-creator>
+
+          </iron-pages>
+        </div>
+      </paper-scroll-header-panel>
+    </paper-drawer-panel>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'reefgems-admin-ui',
+      behaviors: [AppBehaviors, AdminBehaviors, Polymer.IronResizableBehavior],
+
+      listeners: {
+        'iron-resize': '_onIronResize',
+      },
+
+      _onIronResize: function (e) {
+        var ce = document.querySelector('.content').getBoundingClientRect()
+        console.log(ce);
+          console.log(document.querySelector('.content').clientHeight);
+        if (this.querySelector('.content').clientHeight !== 0) {
+          this.querySelector('catalog-creator').style.height = this.querySelector('.content').getBoundingClientRect().height + 'px';
+        }
+        // this.querySelectorsetSize()this.querySelector('.content').clientHeight);
+      },
+
+      appView: function () {
+        this._setPreview(true);
+      }
+    });
+  </script>
+</dom-module>
