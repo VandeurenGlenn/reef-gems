@@ -9,25 +9,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="..\..\bower_components/polymer/polymer.html">
+<!-- TODO: add iconset ! -->
+<link rel="import" href="..\..\bower_components/iron-icons/av-icons.html">
 <link rel="import" href="..\..\bower_components/file-input/file-input.html">
 <link rel="import" href="..\..\bower_components/paper-button/paper-button.html">
+<link rel="import" href="..\..\bower_components/paper-item/paper-item.html">
 <link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards.html">
 <link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards-dialog.html">
 <link rel="import" href="..\..\bower_components/selectable-cards/selectable-cards-bar.html">
 <link rel="import" href="../../bower_components/juicy-jsoneditor/src/juicy-jsoneditor.html">
 <link rel="import" href="..\..\behaviors/firebase/firebase-behaviors.html">
+<link rel="import" href="catalog-creator-collections.html">
 <link rel="stylesheet" type="text/css" href="../../styles/jsoneditor.css">
+<link rel="stylesheet" type="text/css" href="../../styles/shared-styles.html">
 
 <dom-module id="catalog-creator">
   <template>
+    <style is="custom-style" include="shared-styles"></style>
     <style>
       :host {
         position: absolute;
         width: 100%;
-        top: 192px;
-        bottom: 0;
+        height: 100%;
         display: flex;
-        border: 1px solid rgba(0, 0, 0, 0.22);
+        box-sizing: border-box;
+      }
+      :host(.choose-from-collection) {
+        border: none !important;
+      }
+      :host(.choose-from-collection) .cat-panel,
+      :host(.choose-from-collection) .selected-cat-view,
+      :host(.choose-from-collection) .juicy-jsoneditor-wrapper {
+        display: none;
       }
       .horizontal {
         @apply(--layout-horizontal);
@@ -47,6 +60,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       selectable-card {
         padding: 0.9em 1em;
       }
+      .cat-panel {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        position: relative;
+        box-sizing: border-box;
+        border: 0 1px 1px 1px solid rgba(0, 0, 0, 0.22);
+      }
       .cat-list, juicy-jsoneditor {
         min-width: 280px;
       }
@@ -56,15 +77,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .cat-list > .iron-selected {
         background: #eee;
       }
-      .cat-panel, .cat-panel-content, .selected-cat-view, .selected-cat-view > juicy-jsoneditor {
+      .cat-panel, .cat-panel-content, .selected-cat-view, .selected-cat-view-content, .selected-cat-view > juicy-jsoneditor {
         width: 100%;
         height: 100%;
       }
-      .selected-cat-view {
+      .selected-cat-view-content {
         border-left: 1px solid rgba(0, 0, 0, 0.22);
+        box-sizing: border-box;
       }
       paper-toolbar {
         width: 100%;
+        display: block !important;
+      }
+      .selected-cat-view paper-toolbar {
+        /*border-left: 1px solid rgba(255, 255, 255, 0.22);*/
       }
     </style>
     <selectable-cards-dialog id="categorieDialog" selected="{{selectedCatCard}}" with-backdrop>
@@ -76,6 +102,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       <selectable-card heading="Category Options" elevation="0" disabled>
         <div class="card-content horizontal middle">
+          <paper-button raised on-tap="openCollection">choose imported</paper-button>
           <file-input on-file="newFile"><paper-button raised>Upload File</paper-button></file-input>
         </div>
       </selectable-card>
@@ -97,27 +124,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-toolbar>
           <iron-selector selected="{{selectedCat}}" on-iron-select="onCategorySelect" class="cat-list">
             <template is="dom-repeat" items="[[__catalogItems__]]">
-              <p name$="[[item.__key__]]">[[item.__key__]]</p>
+              <paper-item name$="[[item.__key__]]">[[item.__key__]]</paper-item>
             </template>
           </iron-selector>
+          <span class="flex"></span>
         </div>
 
 
         <div class="selected-cat-view horizontal">
-          <paper-toolbar hidden$="[[selectedCat]]">
-
-            <p>select an category from the left panel</p>
-          </paper-toolbar>
+          <div class="vertical" style="width: 100%; min-height: 100px;">
+            <paper-toolbar>
+              <p hidden$="[[selectedCat]]">select an category from the left panel</p>
+              <span class="flex"></span>
+              <paper-icon-button icon="av:library-books" title="Show/hide collection" on-tap="_toggleShowCollection"></paper-icon-button>
+            </paper-toolbar>
+            <div class="selected-cat-view-content flex">
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div hidden$=[[!file]]>
+    <div class="juicy-jsoneditor" hidden$=[[!file]]>
       <juicy-jsoneditor json="[[file]]" history hidden$="[[!file]]"></juicy-jsoneditor>
       <paper-fab icon="save" on-tap="addNewCategorie" hidden$="[[_computeAddCategorySaveHidden(autoSave, file)]]"></paper-fab>
 
       <paper-fab icon="check" on-tap="closeJuicyJson" hidden$="[[!file]]"></paper-fab>
     </div>
+
+    <catalog-creator-collections class="collection list"></catalog-creator-collections>
 
     <firebase-document url="[[computeCategoryUrl(appName, selectedCat)]]" data="{{catData}}"></firebase-document>
   </template>
@@ -151,6 +186,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           readOnly: true
         },
 
+        __collection__: {
+          type: Array,
+          value: [],
+          readOnly: true
+        },
+
         autoSave: {
           type: Boolean,
           value: true
@@ -163,22 +204,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       listeners: {
+        'firebase-catalog-added': 'onFirebaseCatalogAdded',
         tap: '_tapHandler'
       },
 
       ready: function () {
-        this.catalog = this.newFirebaseChild('catalog');
-        this.catalog.on('value', function (e) {
-          this._setCatalogItems(e.val());
-          this._items = [];
-          for (var val in this.catalogItems) {
-            if (this.catalogItems.hasOwnProperty(val)) {
-              this.catalogItems[val].__key__ = val;
-              this.push('_items', this.catalogItems[val]);
-            }
-          }
-          this._set__catalogItems__(this._items);
-        }.bind(this));
+        this._setData(this.catalog, 'catalog');
+      },
+
+      onFirebaseCatalogAdded: function (e) {
+        this._set__catalogItems__(this._pushToArray(e.detail));
       },
 
       computeCategoryUrl: function (app, cat) {
@@ -186,7 +221,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _tapHandler: function (e) {
-        console.log(e);
+        var target = Polymer.dom(e).rootTarget;
+        if (target.localName === 'paper-item') {
+          this.selectedCollectionItem = target.getAttribute('key');
+        }
+        // console.log(Polymer.dom(e).localTarget);
       },
 
       addCategorie: function () {
@@ -278,8 +317,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this._openedCat.on('value', function (e) {
           this.openCatView(e.val());
         }.bind(this));
-
-
       },
 
       openCatView: function (item) {
@@ -305,6 +342,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       },
 
+      openCollection: function () {
+        this.classList.add('choose-from-collection');
+        this.querySelector('catalog-creator-collections').toggleFullScreen();
+      },
+
+      _toggleShowCollection: function () {
+        this.querySelector('catalog-creator-collections').toggleDrawer();
+      }
 
     });
   </script>
