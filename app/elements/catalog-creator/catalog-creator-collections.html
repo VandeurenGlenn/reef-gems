@@ -1,0 +1,146 @@
+<link rel="import" href="../../styles/shared-layout-styles.html">
+<dom-module id="catalog-creator-collections">
+  <template>
+    <style is="custom-style" include="shared-layout-styles"></style>
+    <style>
+      :host {
+        position: absolute;
+        top: 0;
+        display: none;
+        height: 100%;
+        box-sizing: border-box;
+        background: #FFFFFF;
+      }
+      :host[drawer-opened] {
+        display: block;
+        width: 265px;
+        top: 0;
+        right: 0;
+      }
+      :host[full-screen] {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 100;
+        border: none;
+      }
+      paper-dialog {
+        background: #FFFFFF;
+      }
+      paper-dialog > .dialog-content {
+        padding: 0.9em 1em
+      }
+      paper-dialog > .dialog-content > paper-button {
+        margin: 8px;
+      }
+      paper-dialog > paper-icon-button[icon="close"] {
+        margin-right: -8px;
+      }
+      /*paper-header-panel {
+        height: 100%;
+      }*/
+    </style>
+
+    <paper-header-panel mode="waterfall" class="collection list">
+      <paper-toolbar>
+        <h2>Collection</h2>
+        <span class="flex"></span>
+        <paper-icon-button icon="close" on-tap="toggle"></paper-icon-button>
+      </paper-toolbar>
+      <paper-menu on-iron-select="onIronSelect">
+        <template is="dom-repeat" items="[[__userCollection__]]">
+          <paper-item key$="[[item.__key__]]">[[item.__key__]]</paper-item>
+        </template>
+      </paper-menu>
+    </paper-header-panel>
+
+    <paper-dialog with-backdrop>
+      <paper-card heading="What to do?" class="vertical">
+        <div class="vertical card-content">
+          <paper-button raised dialog-confirm>create new category</paper-button>
+          <paper-button raised dialog-confirm>add to category</paper-button>
+        </div>
+      </paper-card>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'catalog-creator-collections',
+      behaviors: [FirebaseBehaviors],
+
+      properties: {
+        __userCollection__: {
+          type: Array,
+          notify: true,
+          readOnly: true
+        },
+
+        selectedCollectionItem: {
+          type: String,
+          notify: true
+        },
+
+        drawerOpened: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        fullScreen: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        }
+      },
+
+      listeners: {
+        'firebase-imported-added': 'onFirebaseImportedAdded'
+      },
+
+      ready: function () {
+        this._setData(this._imported, 'catalog-creator', 'imported');
+      },
+
+      onFirebaseImportedAdded: function (e) {
+        this._set__userCollection__(this._pushToArray(e.detail));
+      },
+
+      toggle: function () {
+        if (this.fullScreen) {
+          this.toggleFullScreen();
+        } else {
+          this.toggleDrawer();
+        }
+      },
+
+      toggleDrawer: function () {
+        if (this.fullScreen) {
+          this.fullScreen = false;
+        }
+        this.drawerOpened = !this.drawerOpened;
+      },
+
+      toggleFullScreen: function () {
+        if (this.drawerOpened) {
+          this.drawerOpened = false;
+        }
+        this.fullScreen = !this.fullScreen;
+      },
+
+      onIronSelect: function (e) {
+        var target = Polymer.dom(e).rootTarget;
+        if (this.fullScreen) {
+          this.selectedCollectionItem = target.getAttribute('key');
+        } else {
+          this.style.width = '100%';
+          document.querySelector('reefgems-admin-ui').querySelector('paper-scroll-header-panel').condense(true);
+          document.querySelector('reefgems-admin-ui').querySelector('paper-scroll-header-panel').querySelector('#mainContainer').style.paddingTop = '64px';
+          // document.querySelector('reefgems-admin-ui').querySelector('paper-scroll-header-panel').setAttribute('header-state', 1)
+          this.querySelector('paper-dialog').open();
+        }
+      }
+    });
+  </script>
+</dom-module>
