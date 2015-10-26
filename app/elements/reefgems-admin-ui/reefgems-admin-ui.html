@@ -5,6 +5,7 @@
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../behaviors/app-behaviors/app-behaviors.html">
 <link rel="import" href="../../behaviors/admin-behaviors/admin-behaviors.html">
+<link rel="import" href="..\..\bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../../styles/app-theme.html">
 <link rel="import" href="../../styles/shared-styles.html">
 
@@ -89,7 +90,21 @@
   <script>
     Polymer({
       is: 'reefgems-admin-ui',
-      behaviors: [AppBehaviors, AdminBehaviors],
+      behaviors: [AppBehaviors, AdminBehaviors, Polymer.IronResizableBehavior],
+
+      listeners: {
+        'iron-resize': '_onIronResize',
+      },
+
+      _onIronResize: function (e) {
+        var ce = document.querySelector('.content').getBoundingClientRect()
+        console.log(ce);
+          console.log(document.querySelector('.content').clientHeight);
+        if (this.querySelector('.content').clientHeight !== 0) {
+          this.querySelector('catalog-creator').style.height = this.querySelector('.content').getBoundingClientRect().height + 'px';
+        }
+        // this.querySelectorsetSize()this.querySelector('.content').clientHeight);
+      },
 
       appView: function () {
         this._setPreview(true);
